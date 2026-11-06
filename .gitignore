@@ -1,0 +1,8 @@
+# Lo que el programa genera al correr: queda en su máquina, no en Git
+clones/
+logs/
+Revision_*.xlsx
+__pycache__/
+*.pyc
+.venv/
+venv/
