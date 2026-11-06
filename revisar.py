@@ -182,7 +182,7 @@ def puntaje_estimado(res, archivos, pruebas, destino):
 
     Cuatro criterios salen enteros del log y del árbol. «Integración por HTTP» llega hasta 2 (que la prueba
     le pegue al servidor se ve; que pruebe algo de verdad se lee). «Innovación» no se ve: la pone el profesor.
-    Devuelve (detalle, nota, nota_maxima_estimable)."""
+    Devuelve (detalle, nota, nota_maxima_estimable, partes); partes es [(criterio, puntos o None, máximo), …]."""
     ramas, merges, autores = res.get("Ramas") or 0, res.get("Merges") or 0, res.get("Autores") or 0
     p_ramas = min(2, max(0, ramas - 1)) + min(2, merges)        # hasta 2 por ramas además de main, hasta 2 por merges
     p_tres = {0: 0, 1: 0, 2: 2}.get(autores, 4)
@@ -220,7 +220,7 @@ def puntaje_estimado(res, archivos, pruebas, destino):
             nota += p
             maximo += m
             detalle.append("%s %d/%d%s" % (nombre, p, m, " (el tercero se lee)" if nombre.startswith("Integración") else ""))
-    return " · ".join(detalle), nota, maximo
+    return " · ".join(detalle), nota, maximo, partes
 
 
 def faltas(res):
@@ -322,8 +322,8 @@ def revisar(fila):
         print("   falta: " + x)
     if not lista:
         print("   no falta nada de lo que se revisa aquí")
-    detalle, nota, maximo = puntaje_estimado(res, archivos, pruebas, destino)
-    res.update({"Puntaje estimado": detalle, "Nota estimada": nota})
+    detalle, nota, maximo, partes = puntaje_estimado(res, archivos, pruebas, destino)
+    res.update({"Puntaje estimado": detalle, "Nota estimada": nota, "Visible": maximo, "Partes": partes})   # Partes y Visible no van al Excel: los usa interfaz.py
     print("   nota estimada: %d de los %d puntos que se ven aquí (sobre 20) · %s" % (nota, maximo, detalle))
     return res, [{"Mesa": mesa, "Marca": marca, **c} for c in commits]
 

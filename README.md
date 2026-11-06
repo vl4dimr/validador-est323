@@ -19,6 +19,16 @@ verdad, que el acta la haya ejecutado otra mesa, la innovación) se revisa leyen
   pueden poner la ruta de una carpeta local en vez del enlace, pero lo que se revisa es
   **lo que está en GitHub**, así que conviene probar con el enlace.
 
+## Con interfaz (lo más fácil)
+
+Doble clic en **`Interfaz.bat`** (o `python interfaz.py`). Se abre el navegador en una
+página que corre solo en su máquina. Peguen el enlace de su repositorio, pulsen «Revisar»
+y en uno o dos minutos ven la nota estimada con sus barras, la lista de lo que falta, lo
+que dice el repositorio y la salida de las pruebas. Hay un enlace para probar primero con
+el ejemplo del curso. Para apagarla, cierren la ventana negra.
+
+Lo que sigue es lo mismo, pero desde `equipos.csv` y el Excel, por si prefieren la consola.
+
 ## Primero, con el ejemplo del curso
 
 `equipos.csv` ya trae en la fila 0 el ejemplo resuelto de la sesión 10, la biblioteca
