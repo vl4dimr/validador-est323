@@ -36,6 +36,12 @@ FLOJO = re.compile(r"^(cambios?|final\d*|update[sd]?|fix(es)?|test|asd+|prueba|a
 BASURA = re.compile(r"(^|/)(node_modules|venv|\.venv|env|__pycache__)(/|$)|(^|/)vendor/(autoload\.php|composer/)|\.(db|sqlite3?|db-journal)$", re.I)
 PRUEBAS = re.compile(r"(\.test\.[cm]?[jt]s$|(^|/)tests?(/|\.py$)|(^|/)test_[^/]*\.py$|Test\.php$|_test\.go$|\.spec\.[cm]?[jt]s$)", re.I)
 ACTA = re.compile(r"acepta", re.I)
+# La rúbrica de la parte del repositorio (la misma de las fichas de observaciones): suma 20.
+CRITERIOS = [("Ramas y merge", 4), ("Trabajan los tres", 4), ("Pruebas que corren", 4),
+             ("Integración por HTTP", 3), ("Orden del repositorio", 3), ("Innovación en el código", 2)]
+# Señales de que una prueba le habla al servidor por HTTP y no solo a una función.
+HTTP_EN_PRUEBAS = re.compile(r"fetch\(|supertest|test_client|TestClient|MockMvc|WebTestClient|RestTemplate|axios|"
+                             r"HttpClient|requests\.(get|post)|http://|https://|\.(get|post)\(['\"]/", re.I)
 
 
 def correr(cmd, cwd, tiempo=TIEMPO):
@@ -171,6 +177,52 @@ def correr_pruebas(raiz, stack):
     return "", "", "", "a mano", "Stack no reconocido."
 
 
+def puntaje_estimado(res, archivos, pruebas, destino):
+    """La nota que se puede estimar sin leer el código, criterio por criterio, con la rúbrica de CRITERIOS.
+
+    Cuatro criterios salen enteros del log y del árbol. «Integración por HTTP» llega hasta 2 (que la prueba
+    le pegue al servidor se ve; que pruebe algo de verdad se lee). «Innovación» no se ve: la pone el profesor.
+    Devuelve (detalle, nota, nota_maxima_estimable)."""
+    ramas, merges, autores = res.get("Ramas") or 0, res.get("Merges") or 0, res.get("Autores") or 0
+    p_ramas = min(2, max(0, ramas - 1)) + min(2, merges)        # hasta 2 por ramas además de main, hasta 2 por merges
+    p_tres = {0: 0, 1: 0, 2: 2}.get(autores, 4)
+    if autores >= 3:
+        cuentas = [int(x.rsplit(":", 1)[1]) for x in (res.get("Commits por autor") or "").split("; ") if ":" in x]
+        if cuentas and min(cuentas) * 10 < sum(cuentas):          # alguien con menos del 10 % de los commits
+            p_tres = 3
+    estado, pasan, fallan = res.get("Estado"), res.get("Pasan") or 0, res.get("Fallan") or 0
+    if estado == "verde":
+        p_pruebas = 4 if pasan >= 5 else 3
+    elif estado == "rojo":
+        p_pruebas = 2 if pasan > fallan else 1
+    elif estado == "a mano":
+        p_pruebas = None                                            # no se corrieron aquí
+    else:
+        p_pruebas = 0
+    http = False
+    for a in pruebas[:40]:
+        try:
+            http = bool(HTTP_EN_PRUEBAS.search((destino / a).read_text(encoding="utf-8", errors="replace")[:200000]))
+        except OSError:
+            pass
+        if http:
+            break
+    p_http = 2 if http else 0
+    readme = any("/" not in a and a.lower().startswith("readme") for a in archivos)
+    p_orden = int(readme) + int(res.get("gitignore") == "sí") + int(not res.get("Basura subida"))
+    partes = [("Ramas y merge", p_ramas, 4), ("Trabajan los tres", p_tres, 4), ("Pruebas que corren", p_pruebas, 4),
+              ("Integración por HTTP", p_http, 3), ("Orden del repositorio", p_orden, 3), ("Innovación en el código", None, 2)]
+    detalle, nota, maximo = [], 0, 0
+    for nombre, p, m in partes:
+        if p is None:
+            detalle.append("%s ?/%d (%s)" % (nombre, m, "no se corrió aquí" if nombre.startswith("Pruebas") else "se lee"))
+        else:
+            nota += p
+            maximo += m
+            detalle.append("%s %d/%d%s" % (nombre, p, m, " (el tercero se lee)" if nombre.startswith("Integración") else ""))
+    return " · ".join(detalle), nota, maximo
+
+
 def faltas(res):
     """Lo que le falta al equipo respecto a lo que pide la Práctica 9, en frases que se entienden solas."""
     f = []
@@ -270,6 +322,9 @@ def revisar(fila):
         print("   falta: " + x)
     if not lista:
         print("   no falta nada de lo que se revisa aquí")
+    detalle, nota, maximo = puntaje_estimado(res, archivos, pruebas, destino)
+    res.update({"Puntaje estimado": detalle, "Nota estimada": nota})
+    print("   nota estimada: %d de los %d puntos que se ven aquí (sobre 20) · %s" % (nota, maximo, detalle))
     return res, [{"Mesa": mesa, "Marca": marca, **c} for c in commits]
 
 
@@ -277,8 +332,8 @@ def excel(filas, commits, destino):
     columnas = ["Mesa", "Marca", "Stack", "Clonó", "Estado", "Pasan", "Fallan", "Autores", "Commits por autor", "Commits",
                 "Commits desde el 30/10", "Ramas", "Cuáles", "Merges", "gitignore", "Basura subida", "Archivos de prueba",
                 "Acta", "Mensajes flojos", "Ejemplos flojos", "Último commit", "Comando", "Enlace", "Observación", "Lo que falta",
-                "Nota", "Para decirles"]
-    anchos = [6, 16, 9, 7, 10, 7, 7, 8, 34, 8, 10, 7, 30, 8, 9, 26, 9, 22, 9, 36, 18, 22, 40, 36, 60, 7, 40]
+                "Puntaje estimado", "Nota estimada", "Nota", "Para decirles"]
+    anchos = [6, 16, 9, 7, 10, 7, 7, 8, 34, 8, 10, 7, 30, 8, 9, 26, 9, 22, 9, 36, 18, 22, 40, 36, 60, 60, 9, 7, 40]
     colores = {"verde": "DCFCE7", "rojo": "FEE2E2", "a mano": "FEF3C7", "no clonó": "FEE2E2", "no corrió": "FEE2E2", "sin pruebas": "FEF3C7"}
     wb = Workbook()
     ws = wb.active

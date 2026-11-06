@@ -33,6 +33,7 @@ Corran `Revisar.bat` sin cambiar nada. Tiene que salir esto:
 · Mesa 0 · Estante
    3 autores · 4 ramas · 3 merges · pruebas: verde (13/0)
    no falta nada de lo que se revisa aquí
+   nota estimada: 17 de los 18 puntos que se ven aquí (sobre 20) · Ramas y merge 4/4 · Trabajan los tres 4/4 · Pruebas que corren 4/4 · Integración por HTTP 2/3 (el tercero se lee) · Orden del repositorio 3/3 · Innovación en el código ?/2 (se lee)
 ```
 
 Si sale eso, el programa funciona en su máquina. Entren a `clones/00_Estante/` y miren
@@ -82,6 +83,26 @@ Cada corrida vuelve a clonar desde cero, así que siempre revisa lo último que 
 Lo que el programa **no ve** y también se califica: que la prueba de integración pase por
 HTTP contra el servidor armado con la base; que el acta la haya ejecutado otra mesa; el
 orden del repositorio (README que diga qué es y cómo se levanta); y la innovación en el código.
+
+## La nota estimada
+
+La parte del repositorio vale 20 puntos, con esta rúbrica. El programa estima lo que puede
+ver y lo imprime criterio por criterio (también va en el Excel, columnas «Puntaje
+estimado» y «Nota estimada»).
+
+| Criterio | Puntos | Cómo lo estima el programa |
+|---|---|---|
+| Ramas y merge | 4 | Hasta 2 por las ramas además de `main` (una por integrante) y hasta 2 por los merges a `main`. |
+| Trabajan los tres | 4 | Tres autores en el log: 4. Dos: 2. Uno: 0. Si alguien tiene menos del 10 % de los commits, 3. |
+| Pruebas que corren | 4 | Verde con 5 o más pruebas: 4. Verde con menos: 3. Rojo: 1 (o 2 si pasan más de las que fallan). Sin pruebas o no corrió: 0. Java, PHP, Laravel y Django: «?», porque aquí no se corren. |
+| Integración por HTTP | 3 | Hasta 2 si alguna prueba le habla al servidor (`fetch`, `supertest`, `test_client`, `MockMvc`…). El tercer punto, que la prueba pruebe algo que importa, se lee. |
+| Orden del repositorio | 3 | 1 por el README, 1 por el `.gitignore`, 1 por no tener basura subida. |
+| Innovación en el código | 2 | No se ve: la pone el profesor leyendo el código. |
+
+Es una **estimación**, no la nota. Lo que se lee después puede bajarla: una contraseña
+escrita en el código, una base que no se puede crear desde el repositorio, una prueba que
+no prueba nada, o tres autores en el log donde uno solo hizo el trabajo. Y puede subirla:
+la innovación y el tercer punto de integración solo se dan leyendo.
 
 ## Antes de subir cualquier cosa
 
