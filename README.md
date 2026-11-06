@@ -19,14 +19,38 @@ verdad, que el acta la haya ejecutado otra mesa, la innovación) se revisa leyen
   pueden poner la ruta de una carpeta local en vez del enlace, pero lo que se revisa es
   **lo que está en GitHub**, así que conviene probar con el enlace.
 
-## Cómo se usa
+## Primero, con el ejemplo del curso
+
+`equipos.csv` ya trae en la fila 0 el ejemplo resuelto de la sesión 10, la biblioteca
+«Estante»: https://github.com/vl4dimr/estante-practica9. Es un repositorio como el que se
+les pide: tres autores en el log, una rama por integrante (`integracion`, `controlador`,
+`aceptacion`) juntadas a `main`, pruebas de integración por HTTP en `pruebas/`, el acta en
+`pruebas/aceptacion.md`, README y `.gitignore`.
+
+Corran `Revisar.bat` sin cambiar nada. Tiene que salir esto:
+
+```
+· Mesa 0 · Estante
+   3 autores · 4 ramas · 3 merges · pruebas: verde (13/0)
+   no falta nada de lo que se revisa aquí
+```
+
+Si sale eso, el programa funciona en su máquina. Entren a `clones/00_Estante/` y miren
+cómo está hecho: `git log --all --graph --oneline` muestra las ramas y los merges;
+`pruebas/recorrido.test.mjs` arma el servidor con `crearServidor(bd)` y le hace pedidos
+con `fetch`; `pruebas/aceptacion.md` tiene los escenarios Dado / Cuando / Entonces y quién
+los ejecutó.
+
+## Después, con el suyo
 
 1. Abran `equipos.csv` con el Bloc de notas o Excel y pongan en la fila 1 su marca y el
    enlace de su repositorio. La columna `stack` puede quedar vacía: el programa lo detecta.
+   Pueden dejar la fila del ejemplo o borrarla.
 
    ```
    mesa,marca,enlace,stack
-   1,Estante,https://github.com/usuario/estante,
+   0,Estante,https://github.com/vl4dimr/estante-practica9,
+   1,MiMarca,https://github.com/usuario/mi-repositorio,
    ```
 
 2. Doble clic en `Revisar.bat` (o `python revisar.py` en la consola). Clona el repositorio
